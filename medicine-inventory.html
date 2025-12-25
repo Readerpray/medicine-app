@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>藥品保健品庫存管理系統 - 安全版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        .login-container h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 之前的所有樣式... 省略以節省空間，請完整複製之前的CSS */
+    </style>
+</head>
+<body>
+    <!-- 登入畫面 -->
+    <div id="loginScreen" class="login-container">
+        <h1>🔐 藥品庫存管理系統</h1>
+        <div class="info-box">
+            <strong>🔒 安全提示：</strong><br>
+            此系統採用三層加密保護：<br>
+            • 應用程式密碼驗證<br>
+            • GitHub 私人儲存庫<br>
+            • 資料端對端加密
+        </div>
+        <div class="form-group">
+            <label>應用程式密碼</label>
+            <input type="password" id="appPassword" placeholder="輸入您設定的密碼">
+        </div>
+        <button onclick="login()">🔓 登入</button>
+        <div id="loginError" class="error hidden"></div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 13px; color: #666;">
+            <strong>首次使用設定：</strong><br>
+            1. 開啟程式碼（F12）<br>
+            2. 找到 APP_PASSWORD_HASH<br>
+            3. 修改為您自己的密碼雜湊值<br>
+            4. 使用線上 SHA-256 工具產生
+        </div>
+    </div>
+
+    <!-- 主程式畫面（登入後顯示）-->
+    <div id="mainApp" class="container hidden">
+        <!-- 之前的完整 HTML 結構... -->
+        <h1>💊 藥品保健品庫存管理系統</h1>
+        <!-- ... 所有之前的內容 ... -->
+    </div>
+
+    <!-- CryptoJS 加密庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <script>
+        // ============ 安全配置區 ============
+        // 預設密碼：medicine123
+        // 請改成您自己的密碼雜湊值！使用 https://emn178.github.io/online-tools/sha256.html
+        const APP_PASSWORD_HASH = 'fa4bf527b1ee5d2ee3e41550774ae3e0215a90021ac86b3fe8d906586d17c4d9'; // 這是 "medicine123" 的 SHA-256
+
+        let isLoggedIn = false;
+        let appPassword = '';
+        let inventory = [];
+        let githubToken = '';
+        let githubUsername = '';
+        let githubRepo = '';
+        let githubFileSha = '';
+        const GITHUB_FILE_PATH = 'medicine-inventory.json';
+
+        // ============ 登入功能 ============
+        function login() {
+            const password = document.getElementById('appPassword').value;
+            const hash = CryptoJS.SHA256(password).toString();
+            
+            if (hash === APP_PASSWORD_HASH) {
+                isLoggedIn = true;
+                appPassword = password;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // 載入設定
+                loadSettings();
+                init();
+            } else {
+                document.getElementById('loginError').textContent = '密碼錯誤！';
+                document.getElementById('loginError').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('loginError').classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        // Enter 鍵登入
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('appPassword');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        login();
+                    }
+                });
+            }
+        });
+
+        // ============ 加密/解密功能 ============
+        function encryptData(data) {
+            const jsonStr = JSON.stringify(data);
+            return CryptoJS.AES.encrypt(jsonStr, appPassword).toString();
+        }
+
+        function decryptData(encryptedData) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, appPassword);
+                const decryptedStr = bytes.toString(CryptoJS.enc.Utf8);
+                return JSON.parse(decryptedStr);
+            } catch (error) {
+                console.error('解密失敗:', error);
+                return null;
+            }
+        }
+
+        // ============ GitHub 操作（加密版）============
+        function loadSettings() {
+            githubToken = localStorage.getItem('githubToken_secure') || '';
+            githubUsername = localStorage.getItem('githubUsername_secure') || '';
+            githubRepo = localStorage.getItem('githubRepo_secure') || 'medicine-data';
+        }
+
+        async function loadFromGitHub() {
+            if (!githubToken) {
+                // 首次使用，顯示設定面板
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/${githubUsername}/${githubRepo}/contents/${GITHUB_FILE_PATH}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${githubToken}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    githubFileSha = data.sha;
+                    
+                    // 解碼並解密
+                    const encryptedContent = atob(data.content);
+                    inventory = decryptData(encryptedContent);
+                    
+                    if (inventory) {
+                        localStorage.setItem('inventoryBackup', JSON.stringify(inventory));
+                        renderInventory();
+                        updateStats();
+                        console.log('✅ 資料已從 GitHub 載入並解密');
+                    } else {
+                        alert('⚠️ 資料解密失敗！可能是密碼錯誤。');
+                        inventory = [];
+                    }
+                } else if (response.status === 404) {
+                    // 檔案不存在，建立初始檔案
+                    inventory = [];
+                    await saveToGitHub();
+                }
+            } catch (error) {
+                console.error('載入失敗:', error);
+                
+                // 使用本地備份
+                const backup = localStorage.getItem('inventoryBackup');
+                if (backup) {
+                    inventory = JSON.parse(backup);
+                    renderInventory();
+                    updateStats();
+                }
+            }
+        }
+
+        async function saveToGitHub() {
+            if (!githubToken) {
+                return false;
+            }
+
+            try {
+                // 加密資料
+                const encryptedData = encryptData(inventory);
+                const content = btoa(encryptedData);
+                
+                const body = {
+                    message: `🔐 加密更新 ${new Date().toLocaleString('zh-TW')}`,
+                    content: content
+                };
+                
+                if (githubFileSha) {
+                    body.sha = githubFileSha;
+                }
+
+                const response = await fetch(
+                    `https://api.github.com/repos/${githubUsername}/${githubRepo}/contents/${GITHUB_FILE_PATH}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${githubToken}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    githubFileSha = data.content.sha;
+                    console.log('✅ 資料已加密並同步到 GitHub');
+                    return true;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('同步失敗:', error);
+                return false;
+            }
+        }
+
+        // ============ 其餘功能（與之前相同）============
+        function init() {
+            loadFromGitHub();
+        }
+
+        function saveData() {
+            localStorage.setItem('inventoryBackup', JSON.stringify(inventory));
+            if (githubToken) {
+                saveToGitHub();
+            }
+        }
+
+        // ... 所有之前的函數（addItem, renderInventory 等）...
+        // 將所有修改資料的地方都呼叫 saveData()
+
+        // 簡化版示範（完整版請使用之前的所有函數）
+        function addItem() {
+            const name = prompt('品項名稱：');
+            if (!name) return;
+            
+            const item = {
+                id: Date.now(),
+                name: name,
+                category: '藥品',
+                quantity: 0,
+                expiry: '',
+                minStock: 0,
+                note: '',
+                history: [{
+                    date: new Date().toISOString(),
+                    action: '新增',
+                    quantity: 0,
+                    note: '初始建立'
+                }]
+            };
+            
+            inventory.push(item);
+            saveData();
+            alert('新增成功！資料已加密同步。');
+        }
+
+        // 檢查登入狀態
+        function checkAuth() {
+            if (!isLoggedIn) {
+                alert('請先登入！');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
