@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyApp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            max-width: 350px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 40px 30px;
+        }
+
+        .login-box h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            display: none;
+        }
+
+        .container.active {
+            display: block;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .sync-status {
+            text-align: center;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .sync-status.syncing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .sync-status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-connected {
+            background: #28a745;
+        }
+
+        .status-disconnected {
+            background: #dc3545;
+        }
+
+        .settings-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .settings-header {
+            cursor: pointer;
+            user-select: none;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .settings-header:hover {
+            background: #5568d3;
+        }
+
+        .settings-content {
+            display: none;
+        }
+
+        .settings-content.active {
+            display: block;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tbody tr {
+            cursor: move;
+            transition: all 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tbody tr.dragging {
+            opacity: 0.5;
+            background: #e3f2fd;
+        }
+
+        .drag-handle {
+            cursor: move;
+            color: #999;
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .drag-handle:hover {
+            color: #667eea;
+        }
+
+        .alert-low {
+            background: #fff3cd !important;
+        }
+
+        .alert-zero {
+            background: #f8d7da !important;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .token-input {
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .hint {
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .data-table {
+                font-size: 14px;
+            }
+            .data-table th,
+            .data-table td {
+                padding: 10px 5px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 極簡登入頁 -->
+    <div id="loginScreen" class="login-box">
+        <h1>🔐</h1>
+        <input type="password" id="appPassword" placeholder="Access Code" autofocus>
+        <button onclick="login()">Enter</button>
+        <div id="loginError" class="error"></div>
+    </div>
+
+    <!-- 主程式 -->
+    <div id="mainApp" class="container">
+        <h1>📦 Data Manager</h1>
+        
+        <div class="sync-status" id="syncStatus">
+            <span class="status-indicator status-disconnected" id="statusIndicator"></span>
+            <span id="statusText">Offline</span>
+        </div>
+
+        <!-- 設定面板 -->
+        <div class="settings-panel">
+            <div class="settings-header" onclick="toggleSettings()">
+                ⚙️ Settings
+            </div>
+            <div class="settings-content" id="settingsContent">
+                <div class="form-group">
+                    <label>API Token</label>
+                    <input type="password" id="apiToken" class="token-input" placeholder="ghp_...">
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="apiUsername" placeholder="username">
+                </div>
+
+                <div class="form-group">
+                    <label>Repository</label>
+                    <input type="text" id="apiRepo" value="data-store" placeholder="repo-name">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="saveConfig()">Save</button>
+                    <button class="btn-info" onclick="testConnection()">Test</button>
+                    <button class="btn-danger" onclick="disconnect()" id="disconnectBtn" style="display:none;">Disconnect</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <!-- 新增表單 -->
+        <div class="control-panel">
+            <h2 style="margin-bottom: 20px; color: #667eea;">Add Item</h2>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="itemName" placeholder="Item name">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="itemType">
+                    <option value="A">Type A</option>
+                    <option value="B">Type B</option>
+                    <option value="C">Type C</option>
+                    <option value="D">Type D</option>
+                    <option value="E">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Qty</label>
+                <input type="number" id="itemQty" min="0" value="0">
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="itemDate">
+            </div>
+            <div class="form-group">
+                <label>Threshold</label>
+                <input type="number" id="itemThreshold" min="0" placeholder="Min quantity">
+            </div>
+            <div class="form-group">
+                <label>Note</label>
+                <input type="text" id="itemNote" placeholder="Optional">
+            </div>
+            <button class="btn-primary" onclick="addItem()">Add</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchBox" placeholder="Search..." onkeyup="filterItems()">
+        </div>
+
+        <div class="button-group" style="margin-bottom: 20px;">
+            <button class="btn-success" onclick="manualSync()">Sync</button>
+            <button class="btn-warning" onclick="loadFromCloud()">Reload</button>
+            <button class="btn-info" onclick="exportData()">Export</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"></th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Qty</th>
+                        <th>Date</th>
+                        <th>Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 模態框 -->
+    <div id="qtyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="color: #667eea; margin-bottom: 20px;"></h2>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="modalQty" min="1" value="1">
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="confirmQtyChange()">OK</button>
+                <button class="btn-danger" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2 style="color: #667eea; margin-bottom: 20px;">Edit Item</h2>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="editName">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="editType">
+                    <option value="A">Type A</option>
+                    <option value="B">Type B</option>
+                    <option value="C">Type C</option>
+                    <option value="D">Type D</option>
+                    <option value="E">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Qty</label>
+                <input type="number" id="editQty" min="0">
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="editDate">
+            </div>
+            <div class="form-group">
+                <label>Threshold</label>
+                <input type="number" id="editThreshold" min="0">
+            </div>
+            <div class="form-group">
+                <label>Note</label>
+                <input type="text" id="editNote">
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="confirmEdit()">Save</button>
+                <button class="btn-danger" onclick="closeEditModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeHistoryModal()">&times;</span>
+            <h2 style="color: #667eea; margin-bottom: 20px;">History</h2>
+            <div id="historyContent"></div>
+        </div>
+    </div>
+
+    <!-- CryptoJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <script>
+        // 配置 - 請修改此雜湊值
+        const AUTH_HASH = '29624e2e4c4ccee26ed8f3e0ca1012ea57a8f2191be6149f632250f7036119cc'; 
+
+        let authenticated = false;
+        let passphrase = '';
+        let dataList = [];
+        let currentItem = null;
+        let currentOp = '';
+        let token = '';
+        let username = '';
+        let repo = '';
+        let fileSha = '';
+        const FILE_PATH = 'data.json';
+        let dragIdx = null;
+
+        // 登入
+        function login() {
+            const pwd = document.getElementById('appPassword').value;
+            const hash = CryptoJS.SHA256(pwd).toString();
+            
+            if (hash === AUTH_HASH) {
+                authenticated = true;
+                passphrase = pwd;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.add('active');
+                loadConfig();
+                init();
+            } else {
+                const err = document.getElementById('loginError');
+                err.textContent = 'Invalid';
+                err.classList.add('show');
+                setTimeout(() => err.classList.remove('show'), 2000);
+            }
+        }
+
+        // Enter 登入
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('appPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') login();
+            });
+        });
+
+        // 加密/解密
+        function encrypt(data) {
+            return CryptoJS.AES.encrypt(JSON.stringify(data), passphrase).toString();
+        }
+
+        function decrypt(encrypted) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(encrypted, passphrase);
+                const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                return JSON.parse(decrypted);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 初始化
+        function init() {
+            if (token && username) {
+                updateStatus('connected', 'Connected');
+                loadFromCloud();
+            } else {
+                updateStatus('offline', 'Offline');
+            }
+            
+            const backup = localStorage.getItem('dataBackup');
+            if (backup && !token) {
+                dataList = JSON.parse(backup);
+                render();
+                updateStats();
+            }
+        }
+
+        function loadConfig() {
+            token = localStorage.getItem('apiToken') || '';
+            username = localStorage.getItem('apiUsername') || '';
+            repo = localStorage.getItem('apiRepo') || 'data-store';
+            
+            if (token) {
+                document.getElementById('apiToken').value = token;
+                document.getElementById('apiUsername').value = username;
+                document.getElementById('apiRepo').value = repo;
+                document.getElementById('disconnectBtn').style.display = 'inline-block';
+            }
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsContent').classList.toggle('active');
+        }
+
+        function saveConfig() {
+            token = document.getElementById('apiToken').value.trim();
+            username = document.getElementById('apiUsername').value.trim();
+            repo = document.getElementById('apiRepo').value.trim();
+            
+            if (!token || !username || !repo) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            localStorage.setItem('apiToken', token);
+            localStorage.setItem('apiUsername', username);
+            localStorage.setItem('apiRepo', repo);
+            
+            document.getElementById('disconnectBtn').style.display = 'inline-block';
+            updateStatus('connected', 'Saved');
+            alert('Config saved');
+        }
+
+        async function testConnection() {
+            if (!token || !username || !repo) {
+                alert('Please configure first');
+                return;
+            }
+
+            updateStatus('syncing', 'Testing...');
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${username}/${repo}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (res.ok) {
+                    updateStatus('connected', 'OK');
+                    alert('Connection OK');
+                    loadFromCloud();
+                } else if (res.status === 401) {
+                    updateStatus('offline', 'Invalid token');
+                    alert('Invalid token');
+                } else if (res.status === 404) {
+                    updateStatus('offline', 'Repo not found');
+                    alert('Repository not found');
+                } else {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+            } catch (error) {
+                updateStatus('offline', 'Error');
+                alert('Connection failed');
+            }
+        }
+
+        function disconnect() {
+            if (confirm('Disconnect?')) {
+                token = '';
+                username = '';
+                repo = '';
+                localStorage.removeItem('apiToken');
+                localStorage.removeItem('apiUsername');
+                localStorage.removeItem('apiRepo');
+                document.getElementById('apiToken').value = '';
+                document.getElementById('apiUsername').value = '';
+                document.getElementById('disconnectBtn').style.display = 'none';
+                updateStatus('offline', 'Disconnected');
+            }
+        }
+
+        async function loadFromCloud() {
+            if (!token) return;
+
+            updateStatus('syncing', 'Loading...');
+
+            try {
+                const res = await fetch(
+                    `https://api.github.com/repos/${username}/${repo}/contents/${FILE_PATH}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+
+                if (res.ok) {
+                    const data = await res.json();
+                    fileSha = data.sha;
+                    
+                    if (!data.content || data.content.trim() === '' || data.size === 0) {
+                        dataList = [];
+                        render();
+                        updateStats();
+                        updateStatus('connected', 'Ready');
+                        return;
+                    }
+                    
+                    try {
+                        const encrypted = atob(data.content);
+                        const decrypted = decrypt(encrypted);
+                        
+                        if (decrypted && Array.isArray(decrypted)) {
+                            dataList = decrypted;
+                            localStorage.setItem('dataBackup', JSON.stringify(dataList));
+                            render();
+                            updateStats();
+                            updateStatus('connected', `Loaded (${dataList.length})`);
+                        } else {
+                            throw new Error('Invalid data');
+                        }
+                    } catch (decryptError) {
+                        if (confirm('Cannot read data. Reset?')) {
+                            dataList = [];
+                            await saveToCloud();
+                            render();
+                            updateStats();
+                            updateStatus('connected', 'Reset');
+                        } else {
+                            const backup = localStorage.getItem('dataBackup');
+                            if (backup) {
+                                dataList = JSON.parse(backup);
+                                render();
+                                updateStats();
+                                updateStatus('connected', 'Local backup');
+                            }
+                        }
+                    }
+                } else if (res.status === 404) {
+                    dataList = [];
+                    await saveToCloud();
+                    render();
+                    updateStats();
+                    updateStatus('connected', 'Created');
+                } else {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+            } catch (error) {
+                updateStatus('offline', 'Load failed');
+                const backup = localStorage.getItem('dataBackup');
+                if (backup) {
+                    dataList = JSON.parse(backup);
+                    render();
+                    updateStats();
+                }
+            }
+        }
+
+        async function saveToCloud() {
+            if (!token) return false;
+
+            updateStatus('syncing', 'Syncing...');
+
+            try {
+                const encrypted = encrypt(dataList);
+                const content = btoa(unescape(encodeURIComponent(encrypted)));
+                
+                const body = {
+                    message: `Update ${new Date().toISOString()}`,
+                    content: content
+                };
+                
+                if (fileSha) body.sha = fileSha;
+
+                const res = await fetch(
+                    `https://api.github.com/repos/${username}/${repo}/contents/${FILE_PATH}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    }
+                );
+
+                if (res.ok) {
+                    const data = await res.json();
+                    fileSha = data.content.sha;
+                    updateStatus('connected', 'Synced');
+                    return true;
+                } else {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+            } catch (error) {
+                updateStatus('offline', 'Sync failed');
+                return false;
+            }
+        }
+
+        async function manualSync() {
+            const ok = await saveToCloud();
+            if (ok) alert('Synced');
+        }
+
+        function updateStatus(status, message) {
+            const el = document.getElementById('syncStatus');
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            
+            text.textContent = message;
+            
+            if (status === 'connected') {
+                el.className = 'sync-status';
+                indicator.className = 'status-indicator status-connected';
+            } else if (status === 'syncing') {
+                el.className = 'sync-status syncing';
+                indicator.className = 'status-indicator status-connected';
+            } else {
+                el.className = 'sync-status offline';
+                indicator.className = 'status-indicator status-disconnected';
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('dataBackup', JSON.stringify(dataList));
+            if (token) saveToCloud();
+        }
+
+        async function addItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const type = document.getElementById('itemType').value;
+            const qty = parseInt(document.getElementById('itemQty').value) || 0;
+            const date = document.getElementById('itemDate').value;
+            const threshold = parseInt(document.getElementById('itemThreshold').value) || 0;
+            const note = document.getElementById('itemNote').value.trim();
+
+            if (!name) {
+                alert('Name required');
+                return;
+            }
+
+            const item = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                qty: qty,
+                date: date,
+                threshold: threshold,
+                note: note,
+                history: [{
+                    date: new Date().toISOString(),
+                    action: 'Created',
+                    qty: qty
+                }]
+            };
+
+            dataList.push(item);
+            saveData();
+            render();
+            updateStats();
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQty').value = '0';
+            document.getElementById('itemDate').value = '';
+            document.getElementById('itemThreshold').value = '';
+            document.getElementById('itemNote').value = '';
+        }
+
+        function openEditModal(id) {
+            currentItem = dataList.find(item => item.id === id);
+            if (!currentItem) return;
+
+            document.getElementById('editName').value = currentItem.name;
+            document.getElementById('editType').value = currentItem.type;
+            document.getElementById('editQty').value = currentItem.qty;
+            document.getElementById('editDate').value = currentItem.date || '';
+            document.getElementById('editThreshold').value = currentItem.threshold || 0;
+            document.getElementById('editNote').value = currentItem.note || '';
+
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        async function confirmEdit() {
+            const newName = document.getElementById('editName').value.trim();
+            const newType = document.getElementById('editType').value;
+            const newQty = parseInt(document.getElementById('editQty').value) || 0;
+            const newDate = document.getElementById('editDate').value;
+            const newThreshold = parseInt(document.getElementById('editThreshold').value) || 0;
+            const newNote = document.getElementById('editNote').value.trim();
+
+            if (!newName) {
+                alert('Name required');
+                return;
+            }
+
+            currentItem.name = newName;
+            currentItem.type = newType;
+            currentItem.qty = newQty;
+            currentItem.date = newDate;
+            currentItem.threshold = newThreshold;
+            currentItem.note = newNote;
+
+            currentItem.history.push({
+                date: new Date().toISOString(),
+                action: 'Edited'
+            });
+
+            saveData();
+            render();
+            updateStats();
+            closeEditModal();
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentItem = null;
+        }
+
+        function render() {
+            const tbody = document.getElementById('dataBody');
+            tbody.innerHTML = '';
+
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const filtered = dataList.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.type.toLowerCase().includes(searchTerm)
+            );
+
+            filtered.forEach((item) => {
+                const row = document.createElement('tr');
+                row.draggable = true;
+                row.dataset.id = item.id;
+                row.dataset.index = dataList.indexOf(item);
+                
+                row.addEventListener('dragstart', handleDragStart);
+                row.addEventListener('dragover', handleDragOver);
+                row.addEventListener('drop', handleDrop);
+                row.addEventListener('dragend', handleDragEnd);
+                
+                if (item.qty === 0) {
+                    row.classList.add('alert-zero');
+                } else if (item.threshold > 0 && item.qty <= item.threshold) {
+                    row.classList.add('alert-low');
+                }
+
+                let dateDisplay = item.date || '-';
+                if (item.date) {
+                    const itemDate = new Date(item.date);
+                    const today = new Date();
+                    const days = Math.floor((itemDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    if (days < 0) {
+                        dateDisplay += ' ⚠️';
+                    } else if (days <= 30) {
+                        dateDisplay += ` (${days}d)`;
+                    }
+                }
+
+                row.innerHTML = `
+                    <td><span class="drag-handle">⋮⋮</span></td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span style="background: #667eea; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${item.type}</span></td>
+                    <td><strong>${item.qty}</strong></td>
+                    <td>${dateDisplay}</td>
+                    <td>${item.note || '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-secondary" onclick="openEditModal(${item.id})">✏️</button>
+                            <button class="btn-success" onclick="openQtyModal(${item.id}, 'add')">➕</button>
+                            <button class="btn-warning" onclick="openQtyModal(${item.id}, 'reduce')">➖</button>
+                            <button class="btn-info" onclick="showHistory(${item.id})">📋</button>
+                            <button class="btn-danger" onclick="deleteItem(${item.id})">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #999;">No data</td></tr>';
+            }
+        }
+
+        function handleDragStart(e) {
+            dragIdx = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        async function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            
+            const dropIdx = parseInt(this.dataset.index);
+            
+            if (dragIdx !== dropIdx) {
+                const item = dataList[dragIdx];
+                dataList.splice(dragIdx, 1);
+                dataList.splice(dropIdx, 0, item);
+                
+                saveData();
+                render();
+            }
+            
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            dragIdx = null;
+        }
+
+        function openQtyModal(id, action) {
+            currentItem = dataList.find(item => item.id === id);
+            currentOp = action;
+            
+            const modal = document.getElementById('qtyModal');
+            const title = document.getElementById('modalTitle');
+            
+            title.textContent = action === 'add' ? `Add: ${currentItem.name}` : `Reduce: ${currentItem.name}`;
+            
+            document.getElementById('modalQty').value = '1';
+            modal.style.display = 'block';
+        }
+
+        async function confirmQtyChange() {
+            const qty = parseInt(document.getElementById('modalQty').value) || 0;
+            
+            if (qty <= 0) {
+                alert('Invalid quantity');
+                return;
+            }
+
+            if (currentOp === 'add') {
+                currentItem.qty += qty;
+                currentItem.history.push({
+                    date: new Date().toISOString(),
+                    action: '+',
+                    qty: qty,
+                    balance: currentItem.qty
+                });
+            } else {
+                if (currentItem.qty < qty) {
+                    alert('Insufficient quantity');
+                    return;
+                }
+                currentItem.qty -= qty;
+                currentItem.history.push({
+                    date: new Date().toISOString(),
+                    action: '-',
+                    qty: qty,
+                    balance: currentItem.qty
+                });
+            }
+
+            saveData();
+            render();
+            updateStats();
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('qtyModal').style.display = 'none';
+            currentItem = null;
+            currentOp = '';
+        }
+
+        function showHistory(id) {
+            const item = dataList.find(i => i.id === id);
+            const modal = document.getElementById('historyModal');
+            const content = document.getElementById('historyContent');
+            
+            content.innerHTML = `<h3 style="margin-bottom: 15px;">${item.name}</h3>`;
+            
+            item.history.slice().reverse().forEach(h => {
+                const date = new Date(h.date);
+                const dateStr = date.toLocaleString('zh-TW');
+                content.innerHTML += `
+                    <div class="history-item">
+                        <strong>${h.action}</strong> - ${dateStr}<br>
+                        ${h.qty ? `Qty: ${h.qty}` : ''} ${h.balance !== undefined ? `| Balance: ${h.balance}` : ''}
+                    </div>
+                `;
+            });
+            
+            modal.style.display = 'block';
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        async function deleteItem(id) {
+            const item = dataList.find(i => i.id === id);
+            if (confirm(`Delete "${item.name}"?`)) {
+                dataList = dataList.filter(i => i.id !== id);
+                saveData();
+                render();
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            const total = dataList.length;
+            const low = dataList.filter(i => i.threshold > 0 && i.qty <= i.threshold).length;
+            const alert = dataList.filter(i => {
+                if (!i.date) return false;
+                return new Date(i.date) < new Date();
+            }).length;
+
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <h3>${total}</h3>
+                    <p>Total</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h3>${low}</h3>
+                    <p>Low Stock</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h3>${alert}</h3>
+                    <p>Alerts</p>
+                </div>
+            `;
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(dataList, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `data-export-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function filterItems() {
+            render();
+        }
+
+        window.onclick = function(event) {
+            const qtyModal = document.getElementById('qtyModal');
+            const historyModal = document.getElementById('historyModal');
+            const editModal = document.getElementById('editModal');
+            
+            if (event.target === qtyModal) closeModal();
+            if (event.target === historyModal) closeHistoryModal();
+            if (event.target === editModal) closeEditModal();
+        }
+    </script>
+</body>
+</html>
